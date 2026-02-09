@@ -1,0 +1,18 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": { "tools": ["write", "edit"] },
+        "command": "bash",
+        "args": [".claude/hooks/pre-check.sh"]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": { "tools": ["write", "edit"] },
+        "command": "bash",
+        "args": [".claude/hooks/post-review.sh"]
+      }
+    ]
+  }
+}
