@@ -9,22 +9,12 @@
 
 ```
 docs/
-├── README.md                  ← 지금 이 파일 (인덱스)
-│
-│  ── HTML/CSS/JS 버전 (현재 사용) ──
-├── CONVENTIONS.md             ← 기술 스택, 폴더 구조, 네이밍, 코드 규칙
-├── DESIGN_SYSTEM.md           ← CSS 변수, 타이포, 글래스모피즘, 반응형
-├── FEATURES.md                ← 인증·OAuth·업로드·게시 기능 명세
+├── README.md              ← 지금 이 파일 (인덱스)
+├── CONVENTIONS.md         ← 기술 스택, 폴더 구조, 네이밍, 코드 규칙
+├── DESIGN_SYSTEM.md       ← 컬러, 타이포, 글래스모피즘, 반응형, 공용 스타일
+├── FEATURES.md            ← 업로드·인증·게시 기능 명세, API 엔드포인트
 └── pages/
-    └── LANDING.md             ← index.html 섹션별 디자인 상세
-│
-│  ── Next.js 버전 (보관용) ──
-├── CONVENTIONS_next.md
-├── DESIGN_SYSTEM_next.md
-├── FEATURES_next.md
-├── README_next.md
-└── pages/
-    └── LANDING_next.md
+    └── LANDING.md         ← 랜딩 페이지 섹션별 디자인 상세
 ```
 
 ---
@@ -33,28 +23,29 @@ docs/
 
 | 작업 | 참조할 파일 |
 |------|------------|
-| 프로젝트 세팅 (FastAPI + 정적 파일 서빙) | `CONVENTIONS.md` |
-| styles.css 작성 (CSS 변수, 공용 스타일) | `DESIGN_SYSTEM.md` |
-| index.html 랜딩 페이지 구현 | `pages/LANDING.md` + `DESIGN_SYSTEM.md` |
-| dashboard.html 구현 | `pages/DASHBOARD.md` (추후 추가) + `DESIGN_SYSTEM.md` |
-| settings.html 구현 | `pages/SETTINGS.md` (추후 추가) + `DESIGN_SYSTEM.md` |
-| app.js 기능 개발 (인증, 업로드, 게시) | `FEATURES.md` |
+| 프로젝트 초기 세팅 (Next.js, Tailwind 설정) | `CONVENTIONS.md` |
+| tailwind.config.ts 설정, globals.css 작성 | `DESIGN_SYSTEM.md` |
+| 공용 UI 컴포넌트 (GlassCard, 버튼 등) 만들기 | `DESIGN_SYSTEM.md` |
+| 랜딩 페이지 구현 | `pages/LANDING.md` + `DESIGN_SYSTEM.md` |
+| 대시보드 페이지 구현 | `pages/DASHBOARD.md` (추후 추가) + `DESIGN_SYSTEM.md` |
+| 업로드 기능 개발 | `FEATURES.md` |
+| OAuth 인증 개발 | `FEATURES.md` |
 | 백엔드 API 개발 | `FEATURES.md` (API 엔드포인트 섹션) |
+| 새 페이지 추가 | `CONVENTIONS.md` (구조) + `DESIGN_SYSTEM.md` (스타일) |
 
 ---
 
-## 바이브코딩 사용 예시
+## Claude Code 사용 팁
+
+작업 시작 전에 필요한 문서만 컨텍스트로 전달하면 됩니다:
 
 ```
 예시 1: 랜딩 페이지 만들기
-→ "docs/DESIGN_SYSTEM.md와 docs/pages/LANDING.md를 참조해서 index.html을 구현해줘"
+→ "docs/DESIGN_SYSTEM.md와 docs/pages/LANDING.md를 참조해서 랜딩 페이지를 구현해줘"
 
-예시 2: app.js 업로드 기능 개발
-→ "docs/FEATURES.md를 참조해서 app.js에 업로드 기능을 구현해줘"
+예시 2: 업로드 기능 개발
+→ "docs/FEATURES.md를 참조해서 영상 업로드 컴포넌트를 구현해줘"
 
-예시 3: 백엔드 OAuth 라우터 개발
-→ "docs/FEATURES.md의 OAuth 섹션을 참조해서 backend/routers/oauth.py를 구현해줘"
-
-예시 4: styles.css 기본 세팅
-→ "docs/DESIGN_SYSTEM.md를 참조해서 styles.css를 작성해줘"
+예시 3: 새 페이지 추가
+→ "docs/CONVENTIONS.md와 docs/DESIGN_SYSTEM.md를 참조해서 대시보드 페이지를 만들어줘"
 ```

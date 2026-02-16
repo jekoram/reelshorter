@@ -1,0 +1,88 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"           // 배포 시 "postgresql"로 변경
+  url      = env("DATABASE_URL")
+}
+
+// 유저 테이블
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String?                          // OAuth만 쓰면 null
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]                        // OAuth 계정들
+  connections   Connection[]                     // 플랫폼 연결
+  publishLogs   PublishLog[]                     // 업로드 이력
+  sessions      Session[]                        // NextAuth 세션
+}
+
+// NextAuth용 OAuth 계정 (구글 로그인 등)
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+// 플랫폼 연결 (YouTube, Instagram)
+model Connection {
+  id                   String   @id @default(cuid())
+  userId               String
+  platform             String                       // "youtube" | "instagram"
+  platformUserId       String?                      // 채널 ID 등
+  platformUsername     String?                      // 표시용 이름
+  encryptedAccessToken String
+  encryptedRefreshToken String?
+  tokenExpiresAt       DateTime?
+  isActive             Boolean  @default(true)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, platform])                     // 유저당 플랫폼 하나씩
+}
+
+// 업로드 이력
+model PublishLog {
+  id              String   @id @default(cuid())
+  userId          String
+  platform        String                           // "youtube" | "instagram"
+  videoTitle      String
+  status          String                           // "success" | "failed" | "pending"
+  errorMessage    String?
+  platformVideoId String?                          // 업로드 후 받는 ID
+  platformUrl     String?                          // 업로드된 영상 URL
+  publishedAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// NextAuth 세션 (선택사항 - JWT 쓰면 필요 없음)
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

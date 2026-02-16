@@ -1,12 +1,12 @@
 ---
 name: "ReelShorts 랜딩 페이지"
-description: "ReelShorts index.html 랜딩 페이지의 섹션별 HTML 구조와 CSS. 랜딩 페이지 구현, index.html 수정, 섹션 추가/변경 시 반드시 이 스킬을 따른다. 트리거: index.html, 랜딩 페이지, 히어로 섹션, 업로드 영역, 기능 카드, CTA 버튼, 푸터"
+description: "ReelShorts 랜딩 페이지(app/page.tsx)의 섹션별 React 컴포넌트 구조와 Tailwind 스타일. 랜딩 페이지 구현, 섹션 추가/변경 시 반드시 이 스킬을 따른다. 트리거: 랜딩 페이지, page.tsx, 히어로 섹션, 업로드 영역, 기능 카드, CTA 버튼, 푸터"
 ---
 
 ## 페이지 구성
 
 7개 섹션: Header → Hero → Upload → Platforms → Features → CTA → Footer.
-배경에 floating-orbs (CSS 애니메이션). 콘텐츠는 z-index: 1.
+배경: `page-bg` 그라데이션 + FloatingOrbs (z-0). 콘텐츠: `relative z-10`.
 
 ## 상세 규칙
 
@@ -14,22 +14,34 @@ description: "ReelShorts index.html 랜딩 페이지의 섹션별 HTML 구조와
 
 ### 핵심 구조
 
-```html
-<body data-page="auth">
-  <div class="floating-orbs"><!-- 5개 orb --></div>
-  <div class="container">
-    <header class="header">...</header>
-    <section class="hero">...</section>
-    <section class="upload">...</section>
-    <section class="platforms">...</section>
-    <section class="features">...</section>
-    <section class="cta">...</section>
-    <footer class="footer">...</footer>
-  </div>
-  <script src="app.js"></script>
-</body>
+```tsx
+// app/page.tsx
+export default function LandingPage() {
+  return (
+    <div className="page-bg relative overflow-hidden">
+      <FloatingOrbs />
+      <div className="relative z-10">
+        <Header />
+        <main className="flex flex-col items-center">
+          <HeroSection />
+          <UploadSection />
+          <PlatformSection />
+          <FeaturesSection />
+          <CTASection />
+        </main>
+        <Footer />
+      </div>
+    </div>
+  )
+}
 ```
 
-### 전용 JS 함수
+### 주요 컴포넌트
 
-`scrollToUpload()` — CTA 클릭 시 업로드 영역으로 스크롤. 업로드 영역 클릭 시 파일 선택 다이얼로그.
+- `Header`: 로고 텍스트, `tracking-[0.3em] uppercase`
+- `HeroSection`: "Upload Once, Share Everywhere" 헤딩
+- `UploadSection`: react-dropzone, dashed 테두리, `"use client"` 필수
+- `PlatformSection`: Instagram ↔ YouTube 아이콘
+- `FeaturesSection`: GlassCard x3 (Save Time, Reach Wider, Easy & Secure)
+- `CTASection`: 그라데이션 CTA 버튼
+- `Footer`: 네비게이션 링크 + 소셜 아이콘

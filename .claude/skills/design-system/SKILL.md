@@ -1,6 +1,6 @@
 ---
 name: "ReelShorts 디자인 시스템"
-description: "ReelShorts 프로젝트의 CSS 스타일 작성 규칙. CSS 파일 작성, 스타일 수정, 색상/타이포/버튼/카드 등 UI 요소 구현 시 반드시 이 스킬을 따른다. 트리거: CSS 작성, styles.css 수정, 색상 변경, 버튼 스타일, 글래스모피즘, 반응형, 레이아웃"
+description: "ReelShorts 프로젝트의 Tailwind CSS 스타일 작성 규칙. Tailwind 설정, globals.css 작성, 색상/타이포/버튼/카드 등 UI 요소 구현 시 반드시 이 스킬을 따른다. 트리거: Tailwind 설정, globals.css 수정, 색상 변경, 버튼 스타일, 글래스모피즘, 반응형, 레이아웃"
 ---
 
 ## 최우선 규칙
@@ -11,19 +11,28 @@ description: "ReelShorts 프로젝트의 CSS 스타일 작성 규칙. CSS 파일
 
 `docs/DESIGN_SYSTEM.md` 파일을 읽고 따른다. 핵심 요약:
 
-### 필수 제약 (위반 즉시 수정)
+### 테마
 
-- **border-radius**: 기본 4px(`--radius-xs`). 8px은 카드/업로드만. pill/원형은 `--radius-full`
-- **hover**: 속성 1개만 변경. 예외: `.btn-primary`만 2개 허용
-- **shadow**: Modal, Dropdown, Toast, `.btn-primary`만 허용
-- **컴포넌트 수**: 한 화면 최대 7개
-- **중첩**: div 3단계 이상 금지
-- **색상**: `:root` 밖에서 색상값 하드코딩 금지 → `var()` 사용
+- Dark Only (라이트 모드 없음)
+- 우주/코스믹 다크 테마 + 글래스모피즘
+- 배경: 세로 멀티 컬러 그라데이션 (`page-bg` 클래스)
 
-### CSS 변수 체계
+### 컬러 팔레트 (tailwind.config.ts)
 
-색상, 간격, 모서리 모두 CSS 변수로 정의되어 있다. 정확한 변수명과 값은 `docs/DESIGN_SYSTEM.md`의 `:root` 블록을 참조한다.
+배경: `bg-top`(#0a0a1a), `bg-mid`(#1a1040), `bg-bottom`(#2d1b4e), `bg-warm`(#4a2040)
+포인트: `accent-red`(#e94560), `accent-orange`(#ff6b35), `accent-purple`(#7b2ff7)
+글래스: `glass-bg`(rgba 0.08), `glass-border`(rgba 0.15)
+텍스트: `text-white`, `text-white/70`, `text-white/50`
 
-### 공용 컴포넌트
+### 글래스모피즘 패턴
 
-`.glass-card`, `.btn-primary`, `.btn-secondary`, `.upload-area`, `.form-input`, `.progress-bar`, `.toast` — 각각의 정확한 CSS는 `docs/DESIGN_SYSTEM.md` 참조.
+`bg-white/[0.08] backdrop-blur-md border border-white/[0.15] rounded-2xl`
+
+### 공용 버튼
+
+- Primary CTA: `bg-gradient-to-r from-accent-red to-accent-orange` + `rounded-full`
+- Secondary Ghost: `bg-white/10 hover:bg-white/20` + `border border-white/20` + `rounded-full`
+
+### 반응형
+
+모바일 퍼스트. `sm`(640), `md`(768), `lg`(1024). 컨테이너: `max-w-6xl mx-auto px-4 md:px-8`

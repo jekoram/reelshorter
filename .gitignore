@@ -1,7 +1,34 @@
+# dependencies
+node_modules/
+
+# next.js
+.next/
+out/
+
+# production
+build/
+
+# env files
 .env
-database/*.db
-backend/logs/*.log
-__pycache__/
-*.pyc
+.env*.local
+
+# database
+prisma/dev.db
+prisma/dev.db-journal
+
+# debug
+npm-debug.log*
+
+# misc
 .DS_Store
+*.pem
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# google credentials
 google_client_secret*.json

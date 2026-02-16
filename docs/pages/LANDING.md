@@ -1,6 +1,7 @@
-# 랜딩 페이지 디자인 명세 (index.html)
+# 랜딩 페이지 디자인 명세
 
-> 파일 위치: `frontend/index.html`
+> 파일 위치: `src/app/page.tsx`
+> 디자인 참고: 이 페이지는 우주/코스믹 테마의 다크 원페이지 랜딩입니다.
 > 공통 스타일은 `docs/DESIGN_SYSTEM.md`를 참조하세요.
 
 ---
@@ -9,59 +10,23 @@
 
 ```
 ┌─────────────────────────────────────┐
-│         .floating-orbs (배경)        │  ← z-index: 0
-├─────────────────────────────────────┤
-│  .container (z-index: 1)            │
+│            Header (로고)              │
 │                                      │
-│   header.header                      │  ← "REELSHORTS" 로고
+│         HeroSection (헤딩)            │
 │                                      │
-│   section.hero                       │  ← 메인 헤딩 + 서브텍스트
+│       UploadSection (업로드 영역)      │
 │                                      │
-│   section.upload                     │  ← 드래그앤드롭 영역
+│     PlatformSection (플랫폼 아이콘)    │
 │                                      │
-│   section.platforms                  │  ← Instagram ↔ YouTube 아이콘
+│      FeaturesSection (기능 카드 x3)    │
 │                                      │
-│   section.features                   │  ← 기능 카드 x3
+│         CTASection (버튼)             │
 │                                      │
-│   section.cta                        │  ← GET STARTED FOR FREE 버튼
-│                                      │
-│   footer.footer                      │  ← 링크 + 소셜 아이콘
-│                                      │
+│            Footer (링크)              │
 └─────────────────────────────────────┘
-```
 
----
-
-## HTML 뼈대
-
-```html
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ReelShorts — Upload Once, Share Everywhere</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.min.css" />
-  <link rel="stylesheet" href="styles.css" />
-</head>
-<body data-page="auth">
-
-  <!-- 배경 효과 -->
-  <div class="floating-orbs">
-    <div class="orb"></div>
-    <div class="orb"></div>
-    <div class="orb"></div>
-    <div class="orb"></div>
-    <div class="orb"></div>
-  </div>
-
-  <div class="container">
-    <!-- 각 섹션 여기에 -->
-  </div>
-
-  <script src="app.js"></script>
-</body>
-</html>
+배경: page-bg 그라데이션 + FloatingOrbs (z-0)
+콘텐츠: relative z-10 (orbs 위에 표시)
 ```
 
 ---
@@ -70,298 +35,205 @@
 
 ### 1. Header
 
-```html
-<header class="header">
-  <span class="logo">REELSHORTS</span>
-</header>
+```
+위치: 페이지 최상단
+파일: components/layout/Header.tsx
+
+구성:
+  - "REELSHORTS" 로고 텍스트 (중앙 정렬)
+
+스타일:
+  - 텍스트: text-2xl font-bold tracking-[0.3em] uppercase text-white
+  - 패딩: py-8
+  - 배경: 투명 (page-bg가 비침)
 ```
 
-```css
-.header {
-  text-align: center;
-  padding: var(--space-xl) 0;
-}
-/* .logo 스타일은 DESIGN_SYSTEM.md 참조 */
+### 2. HeroSection
+
+```
+파일: components/sections/HeroSection.tsx
+
+구성:
+  - 메인 헤딩: "Upload Once, Share Everywhere"
+  - 서브텍스트: "Instantly publish your videos to Reels & Shorts simultaneously"
+
+스타일:
+  - 컨테이너: text-center max-w-4xl mx-auto px-4
+  - 메인 헤딩: text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white
+  - 서브텍스트: text-base md:text-lg text-white/70 mt-4
+  - 아래 여백: mb-12
 ```
 
-### 2. Hero Section
+### 3. UploadSection
 
-```html
-<section class="hero">
-  <h1 class="heading-xl">Upload Once, Share Everywhere</h1>
-  <p class="subtitle">Instantly publish your videos to Reels & Shorts simultaneously</p>
-</section>
+```
+파일: components/sections/UploadSection.tsx
+"use client" 필수 (react-dropzone 사용)
+
+구성:
+  - 드래그앤드롭 영역 (dashed 테두리 직사각형)
+  - 내부: 클라우드 아이콘 + 안내 텍스트
+
+레이아웃:
+  ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
+  ╎   ☁  Drag & Drop Your Video Here  ╎
+  ╎       or Click to Upload           ╎
+  └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘
+
+스타일:
+  - 외부: max-w-xl mx-auto
+  - 영역: border-2 border-dashed border-white/30 rounded-xl
+          bg-white/5 backdrop-blur-sm
+          px-12 py-10
+          flex items-center gap-4
+          cursor-pointer
+          hover:border-white/50 transition-colors
+  - 아이콘: Cloud (Lucide), w-10 h-10, text-white/50
+  - 메인 텍스트: "Drag & Drop Your Video Here" — text-base text-white/80 font-medium
+  - 서브 텍스트: "or Click to Upload" — text-sm text-white/50
+  - 아래 여백: mb-10
+
+상호작용:
+  - 드래그 오버 시: border-white/60 + bg-white/10 변경
+  - 파일 드롭/선택 후: 파일명 표시 또는 썸네일 미리보기
 ```
 
-```css
-.hero {
-  text-align: center;
-  margin-bottom: var(--space-xl);
-}
-.hero .subtitle {
-  margin-top: var(--space-md);
-}
+### 4. PlatformSection
+
+```
+파일: components/sections/PlatformSection.tsx
+
+구성:
+  - Instagram 아이콘 (원형, 인스타 그라데이션 배경)
+  - 양방향 화살표
+  - YouTube Shorts 아이콘 (원형, 빨간 배경)
+
+레이아웃:
+  [Instagram 🔵] ──↔── [YouTube 🔴]
+
+스타일:
+  - 컨테이너: flex items-center justify-center gap-4 mb-12
+  - 각 아이콘 원: w-12 h-12 rounded-full flex items-center justify-center
+    - Instagram: bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400
+    - YouTube: bg-red-600
+  - 아이콘 (내부): w-6 h-6 text-white
+    - Instagram: SiInstagram (react-icons)
+    - YouTube: SiYoutube (react-icons) 또는 커스텀 "You Shorts" 텍스트 아이콘
+  - 화살표: text-white/40, ArrowLeftRight (Lucide) 또는 커스텀 SVG
 ```
 
-### 3. Upload Section
+### 5. FeaturesSection
 
-```html
-<section class="upload">
-  <div class="upload-area" id="upload-dropzone">
-    <svg><!-- 클라우드 아이콘 SVG --></svg>
-    <div>
-      <p class="upload-title">Drag & Drop Your Video Here</p>
-      <p class="upload-sub">or Click to Upload</p>
-    </div>
-    <input type="file" id="file-input" accept="video/mp4,video/quicktime" hidden />
-  </div>
-</section>
+```
+파일: components/sections/FeaturesSection.tsx
+
+구성: 3개의 GlassCard를 가로 배치
+
+레이아웃:
+  ┌──────────┐  ┌──────────┐  ┌──────────┐
+  │  🕐 icon  │  │  📊 icon  │  │  🛡 icon  │
+  │           │  │           │  │           │
+  │ Save Time.│  │  Reach    │  │ Easy &    │
+  │ Automate  │  │  Wider    │  │ Secure    │
+  │ your      │  │ Audiences │  │ Your      │
+  │ workflow  │  │ Maximize  │  │ content   │
+  │           │  │ your views│  │ you safe  │
+  └──────────┘  └──────────┘  └──────────┘
+
+카드 데이터:
+  1. icon: Clock (Lucide), title: "Save Time.", desc: "Automate your workflow"
+  2. icon: BarChart3 (Lucide), title: "Reach Wider Audiences", desc: "Maximize your views"
+  3. icon: Shield (Lucide), title: "Easy & Secure", desc: "Your content you safe"
+
+스타일:
+  - 그리드: grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-3xl mx-auto px-4
+  - 각 카드: GlassCard 컴포넌트 사용
+    - bg-white/[0.08] backdrop-blur-md border border-white/[0.15] rounded-2xl
+    - p-6 text-center
+  - 아이콘 컨테이너: mx-auto mb-4 bg-white/10 rounded-xl w-12 h-12
+                     flex items-center justify-center
+  - 아이콘: w-5 h-5 text-white
+  - 제목: text-sm font-semibold text-white mt-3
+  - 설명: text-xs text-white/60 mt-1
+  - 아래 여백: mb-10
 ```
 
-```css
-.upload {
-  max-width: 560px;
-  margin: 0 auto var(--space-xl);
-}
-/*
-  .upload-area 기본 스타일(border, background 등)은 DESIGN_SYSTEM.md 참조.
-  아래는 랜딩 페이지 전용 레이아웃 보강.
-*/
-.upload-area {
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
-}
-.upload-area .upload-title {
-  font-size: 1rem;
-  color: var(--text-secondary);
-  font-weight: 500;
-  margin: 0;
-}
-.upload-area .upload-sub {
-  font-size: 0.875rem;
-  color: var(--text-muted);
-  margin: 4px 0 0;
-}
-.upload-area svg {
-  width: 40px;
-  height: 40px;
-  fill: none;
-  stroke: var(--text-muted);
-  stroke-width: 1.5;
-  flex-shrink: 0;
-}
+### 6. CTASection
+
 ```
+파일: components/sections/CTASection.tsx
 
-### 4. Platform Section
+구성:
+  - "GET STARTED FOR FREE" 버튼 (중앙 정렬)
 
-```html
-<section class="platforms">
-  <div class="platform-icon platform-icon--instagram">
-    <!-- Instagram SVG 로고 -->
-  </div>
-  <span class="platforms__arrow">⇄</span>
-  <div class="platform-icon platform-icon--youtube">
-    <!-- YouTube SVG 로고 -->
-  </div>
-</section>
-```
-
-```css
-.platforms {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-md);
-  margin-bottom: var(--space-xl);
-}
-
-.platform-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.platform-icon svg {
-  width: 24px;
-  height: 24px;
-  fill: white;
-}
-.platform-icon--instagram {
-  background-image: var(--color-instagram);  /* gradient는 background-image로만 적용 */
-}
-.platform-icon--youtube {
-  background: var(--color-youtube);
-}
-
-.platforms__arrow {
-  color: var(--text-muted);
-  font-size: 1.5rem;
-}
-```
-
-### 5. Features Section
-
-```html
-<section class="features">
-  <div class="glass-card feature-card">
-    <div class="icon-box">
-      <svg><!-- Clock SVG --></svg>
-    </div>
-    <h3 class="card-title">Save Time.</h3>
-    <p class="card-desc">Automate your workflow</p>
-  </div>
-
-  <div class="glass-card feature-card">
-    <div class="icon-box">
-      <svg><!-- Chart SVG --></svg>
-    </div>
-    <h3 class="card-title">Reach Wider Audiences</h3>
-    <p class="card-desc">Maximize your views</p>
-  </div>
-
-  <div class="glass-card feature-card">
-    <div class="icon-box">
-      <svg><!-- Shield SVG --></svg>
-    </div>
-    <h3 class="card-title">Easy & Secure</h3>
-    <p class="card-desc">Your content stays safe</p>
-  </div>
-</section>
-```
-
-```css
-.features {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-lg);
-  max-width: 720px;
-  margin: 0 auto var(--space-xl);
-}
-@media (min-width: 768px) {
-  .features { grid-template-columns: repeat(3, 1fr); }
-}
-
-.feature-card {
-  text-align: center;
-}
-.feature-card .icon-box {
-  margin: 0 auto var(--space-md);
-}
-.feature-card .card-title {
-  margin: var(--space-sm) 0 var(--space-xs);
-}
-.feature-card .card-desc {
-  margin: 0;
-}
-```
-
-### 6. CTA Section
-
-```html
-<section class="cta">
-  <button type="button" class="btn-primary" onclick="scrollToUpload()">GET STARTED FOR FREE</button>
-</section>
-```
-
-```css
-.cta {
-  text-align: center;
-  margin-bottom: var(--space-xl);
-}
+스타일:
+  - 컨테이너: text-center mb-10
+  - 버튼: GradientButton 컴포넌트 사용
+    bg-gradient-to-r from-accent-red to-accent-orange
+    text-white text-sm font-bold uppercase tracking-wider
+    px-8 py-3 rounded-full
+    hover:brightness-110 hover:scale-105
+    transition-all duration-200
+    shadow-lg shadow-accent-red/25
 ```
 
 ### 7. Footer
 
-```html
-<footer class="footer">
-  <nav class="footer__links">
-    <a href="#how-it-works">How It Works</a>
-    <a href="#pricing">Pricing</a>
-    <a href="#faq">FAQ</a>
-    <a href="#contact">Contact</a>
-  </nav>
-  <div class="footer__social">
-    <a href="#"><!-- Instagram SVG --></a>
-    <a href="#"><!-- YouTube SVG --></a>
-    <a href="#"><!-- Twitter SVG --></a>
-    <a href="#"><!-- Facebook SVG --></a>
-    <a href="#"><!-- TikTok SVG --></a>
-  </div>
-</footer>
 ```
+파일: components/layout/Footer.tsx
 
-```css
-.footer {
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding: var(--space-lg) 0 var(--space-xl);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-md);
-}
-@media (min-width: 768px) {
-  .footer {
-    flex-direction: row;
-    justify-content: space-between;
-  }
-}
+구성:
+  - 상단: 네비게이션 링크 (가로 나열, 중앙)
+  - 하단: 소셜 미디어 아이콘 (우측 정렬)
 
-.footer__links {
-  display: flex;
-  gap: var(--space-lg);
-}
-.footer__links a {
-  font-size: 0.875rem;
-  color: var(--text-muted);
-  text-decoration: none;
-  transition: color 0.2s;
-}
-.footer__links a:hover {
-  color: var(--text-primary);
-}
+레이아웃:
+  ─────────────────────────────────────
+  How It Works    Pricing    FAQ    Contact         [인스타][유튜브][트위터][페북][틱톡]
 
-.footer__social {
-  display: flex;
-  gap: var(--space-sm);
-}
-.footer__social a {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-}
-.footer__social svg {
-  width: 20px;
-  height: 20px;
-  fill: var(--text-muted);
-  transition: fill 0.2s;
-}
-.footer__social a:hover svg {
-  fill: var(--text-primary);
-}
+스타일:
+  - 컨테이너: border-t border-white/10 pt-6 pb-8
+              max-w-6xl mx-auto px-4
+              flex flex-col md:flex-row items-center justify-between gap-4
+  - 링크 그룹: flex gap-6
+  - 각 링크: text-sm text-white/60 hover:text-white transition-colors cursor-pointer
+  - 소셜 아이콘 그룹: flex gap-3
+  - 각 소셜 아이콘: w-5 h-5 text-white/60 hover:text-white transition-colors
+
+링크 목록: ["How It Works", "Pricing", "FAQ", "Contact"]
+소셜 아이콘: [SiInstagram, SiYoutube, SiTwitter, SiFacebook, SiTiktok] (react-icons/si)
 ```
 
 ---
 
-## 랜딩 페이지 전용 JS 함수
+## page.tsx 조합 예시
 
-app.js의 `initAuthPage()` 안에 포함:
+```tsx
+// src/app/page.tsx
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
+import HeroSection from "@/components/sections/HeroSection";
+import UploadSection from "@/components/sections/UploadSection";
+import PlatformSection from "@/components/sections/PlatformSection";
+import FeaturesSection from "@/components/sections/FeaturesSection";
+import CTASection from "@/components/sections/CTASection";
+import FloatingOrbs from "@/components/ui/FloatingOrbs";
 
-```js
-// CTA 버튼 → 업로드 영역으로 스크롤
-function scrollToUpload() {
-  document.getElementById('upload-dropzone').scrollIntoView({
-    behavior: 'smooth',
-    block: 'center'
-  });
+export default function LandingPage() {
+  return (
+    <div className="page-bg relative overflow-hidden">
+      <FloatingOrbs />
+      <div className="relative z-10">
+        <Header />
+        <main className="flex flex-col items-center">
+          <HeroSection />
+          <UploadSection />
+          <PlatformSection />
+          <FeaturesSection />
+          <CTASection />
+        </main>
+        <Footer />
+      </div>
+    </div>
+  );
 }
-
-// 업로드 영역 클릭 → 파일 선택 다이얼로그
-document.getElementById('upload-dropzone').addEventListener('click', () => {
-  document.getElementById('file-input').click();
-});
 ```
