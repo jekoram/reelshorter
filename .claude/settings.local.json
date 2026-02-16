@@ -1,5 +1,16 @@
 {
   "permissions": {
-    "allow": []
+    "allow": [
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nMigrate from FastAPI to Next.js 14 fullstack structure\n\nReplace FastAPI + Vanilla HTML/CSS/JS with Next.js 14 App Router,\nTypeScript, Tailwind CSS, Prisma, and NextAuth.js.\n\n- Add Next.js config files \\(package.json, tsconfig, tailwind, etc.\\)\n- Add Prisma schema with User, Account, Connection, PublishLog, Session\n- Add placeholder files for app/, components/, lib/, types/, actions/\n- Move claude.md context files to their target directories\n- Replace docs with Next.js versions, remove CODE_REVIEW_HOOK.md\n- Rewrite Claude skills and hooks for TSX/TS/CSS patterns\n- Update .env.example, .gitignore for Next.js\n- Remove backend/, frontend/, tests/, database/, requirements.txt\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push:*)",
+      "Bash(wc:*)",
+      "Bash(npm install:*)",
+      "Bash(npx prisma generate:*)",
+      "Bash(npx prisma db push:*)",
+      "Bash(npx next build:*)",
+      "Bash(curl:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ]
   }
 }

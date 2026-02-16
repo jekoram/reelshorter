@@ -1,8 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    serverActions: true,
-  },
+  distDir: process.env.BUILD_DIR || ".next",
 }
 
 module.exports = nextConfig
