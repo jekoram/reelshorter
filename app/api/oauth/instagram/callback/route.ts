@@ -1,1 +1,5 @@
-// Instagram OAuth 콜백 — GET /api/oauth/instagram/callback (토큰 교환 + DB 저장)
+import { NextResponse } from "next/server"
+
+export async function GET() {
+  return NextResponse.json({ message: "Instagram OAuth callback — Coming Soon" }, { status: 501 })
+}
