@@ -2,4 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 전역 스타일 — 페이지 배경 그라데이션, 커스텀 유틸리티 등 */
+.page-bg {
+  background: linear-gradient(
+    180deg,
+    #0a0a1a 0%,
+    #121230 20%,
+    #1a1040 40%,
+    #2d1b4e 65%,
+    #4a2040 85%,
+    #1a1030 100%
+  );
+  min-height: 100vh;
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/[0.08] backdrop-blur-md border border-white/[0.15] rounded-2xl;
+  }
+
+  .glass-hover {
+    @apply glass hover:bg-white/[0.12] transition-colors;
+  }
+}

@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:check": "BUILD_DIR=.next-build next build && rm -rf .next-build",
     "start": "next start",
     "lint": "next lint",
     "db:push": "prisma db push",
@@ -12,26 +13,30 @@
     "db:generate": "prisma generate"
   },
   "dependencies": {
-    "next": "^14.2.0",
-    "react": "^18.3.0",
-    "react-dom": "^18.3.0",
-    "next-auth": "^4.24.0",
     "@auth/prisma-adapter": "^1.6.0",
     "@prisma/client": "^5.14.0",
-    "googleapis": "^140.0.0",
-    "crypto-js": "^4.2.0",
-    "bcryptjs": "^2.4.3",
-    "tailwindcss": "^3.4.0",
     "autoprefixer": "^10.4.0",
-    "postcss": "^8.4.0"
+    "bcryptjs": "^2.4.3",
+    "crypto-js": "^4.2.0",
+    "framer-motion": "^12.34.0",
+    "googleapis": "^140.0.0",
+    "lucide-react": "^0.564.0",
+    "next": "^14.2.0",
+    "next-auth": "^4.24.0",
+    "postcss": "^8.4.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "react-dropzone": "^15.0.0",
+    "react-icons": "^5.5.0",
+    "tailwindcss": "^3.4.0"
   },
   "devDependencies": {
-    "typescript": "^5.4.0",
+    "@types/bcryptjs": "^2.4.0",
+    "@types/crypto-js": "^4.2.0",
     "@types/node": "^20.12.0",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
-    "@types/crypto-js": "^4.2.0",
-    "@types/bcryptjs": "^2.4.0",
-    "prisma": "^5.14.0"
+    "prisma": "^5.14.0",
+    "typescript": "^5.4.0"
   }
 }

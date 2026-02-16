@@ -60,6 +60,8 @@ model Connection {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, platform])                     // 유저당 플랫폼 하나씩
+  @@index([platform])                              // 플랫폼별 연결 조회
+  @@index([platformUserId])                        // SNS 계정으로 유저 역추적
 }
 
 // 업로드 이력
