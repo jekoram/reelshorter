@@ -1,1 +1,7 @@
-// 로딩 스피너 컴포넌트
+export function Loading({ className }: { className?: string }) {
+  return (
+    <div className={`flex items-center justify-center ${className ?? ""}`}>
+      <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+    </div>
+  )
+}
