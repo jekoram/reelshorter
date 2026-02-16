@@ -1,1 +1,12 @@
-// 대시보드 공통 레이아웃 — 사이드바, 헤더 포함
+import { Sidebar } from "@/components/layout/sidebar"
+
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex min-h-screen">
+      <Sidebar />
+      <main className="flex-1 bg-gray-50 p-8">
+        {children}
+      </main>
+    </div>
+  )
+}
