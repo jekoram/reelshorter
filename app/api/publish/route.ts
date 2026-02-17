@@ -14,9 +14,7 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
     const file = formData.get("file") as File | null
-    const title = formData.get("title") as string | null
-    const description = (formData.get("description") as string) || ""
-    const platforms = formData.getAll("platforms") as string[]
+    const platformsRaw = formData.get("platforms") as string | null
 
     // 입력 검증
     if (!file) {
@@ -26,18 +24,30 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!title || title.trim().length === 0) {
+    let platformEntries: { platform: string; title: string; description: string }[]
+    try {
+      platformEntries = JSON.parse(platformsRaw || "[]")
+    } catch {
       return NextResponse.json(
-        { error: "제목을 입력해주세요." },
+        { error: "플랫폼 데이터 형식이 올바르지 않습니다." },
         { status: 400 }
       )
     }
 
-    if (platforms.length === 0) {
+    if (platformEntries.length === 0) {
       return NextResponse.json(
         { error: "게시할 플랫폼을 선택해주세요." },
         { status: 400 }
       )
+    }
+
+    for (const entry of platformEntries) {
+      if (!entry.title || entry.title.trim().length === 0) {
+        return NextResponse.json(
+          { error: `${entry.platform} 제목을 입력해주세요.` },
+          { status: 400 }
+        )
+      }
     }
 
     // 파일 크기 검증 (서버 측)
@@ -67,12 +77,12 @@ export async function POST(request: NextRequest) {
     const results: { platform: string; success: boolean; url?: string; error?: string }[] = []
 
     // 각 플랫폼별 업로드
-    for (const platform of platforms) {
-      if (platform === "youtube") {
+    for (const entry of platformEntries) {
+      if (entry.platform === "youtube") {
         try {
           const result = await uploadToYouTube(session.user.id, {
-            title: title.trim(),
-            description: description.trim(),
+            title: entry.title.trim(),
+            description: entry.description.trim(),
             file: buffer,
             mimeType: file.type || "video/mp4",
           })
@@ -82,7 +92,7 @@ export async function POST(request: NextRequest) {
             data: {
               userId: session.user.id,
               platform: "youtube",
-              videoTitle: title.trim(),
+              videoTitle: entry.title.trim(),
               status: "success",
               platformVideoId: result.videoId,
               platformUrl: result.url,
@@ -103,7 +113,7 @@ export async function POST(request: NextRequest) {
             data: {
               userId: session.user.id,
               platform: "youtube",
-              videoTitle: title.trim(),
+              videoTitle: entry.title.trim(),
               status: "failed",
               errorMessage,
             },
@@ -115,7 +125,7 @@ export async function POST(request: NextRequest) {
             error: errorMessage,
           })
         }
-      } else if (platform === "instagram") {
+      } else if (entry.platform === "instagram") {
         // Instagram은 Phase 6에서 구현 예정
         results.push({
           platform: "instagram",

@@ -7,21 +7,36 @@ import { validateVideoFile } from "@/lib/validators"
 import { formatFileSize } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { PlatformBlock } from "@/components/dashboard/platform-block"
 import type { ConnectionInfo } from "@/types"
 
 interface UploadFormProps {
   connections: ConnectionInfo[]
 }
 
+interface PlatformInput {
+  enabled: boolean
+  title: string
+  description: string
+}
+
 export function UploadForm({ connections }: UploadFormProps) {
   // hooks
   const [file, setFile] = useState<File | null>(null)
-  const [title, setTitle] = useState("")
-  const [description, setDescription] = useState("")
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
-  const [selectedPlatforms, setSelectedPlatforms] = useState<Set<string>>(new Set())
+
+  const [youtube, setYoutube] = useState<PlatformInput>({
+    enabled: false,
+    title: "",
+    description: "",
+  })
+  const [instagram, setInstagram] = useState<PlatformInput>({
+    enabled: false,
+    title: "",
+    description: "",
+  })
 
   const youtubeConnection = connections.find((c) => c.platform === "youtube" && c.isActive)
   const instagramConnection = connections.find((c) => c.platform === "instagram" && c.isActive)
@@ -62,25 +77,30 @@ export function UploadForm({ connections }: UploadFormProps) {
     setError(null)
   }
 
-  const handleTogglePlatform = (platform: string) => {
-    setSelectedPlatforms((prev) => {
-      const next = new Set(prev)
-      if (next.has(platform)) {
-        next.delete(platform)
-      } else {
-        next.add(platform)
-      }
-      return next
-    })
-  }
+  const hasSelectedPlatform = youtube.enabled || instagram.enabled
+  const hasTitle =
+    (youtube.enabled && youtube.title.trim()) ||
+    (instagram.enabled && instagram.title.trim())
+
+  const canSubmit = file && hasSelectedPlatform && hasTitle && !isUploading
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!file || !title.trim()) return
+    if (!file) return
 
-    if (selectedPlatforms.size === 0) {
+    if (!hasSelectedPlatform) {
       setError("업로드할 플랫폼을 하나 이상 선택해주세요.")
+      return
+    }
+
+    // 활성화된 플랫폼의 제목 검증
+    if (youtube.enabled && !youtube.title.trim()) {
+      setError("YouTube 제목을 입력해주세요.")
+      return
+    }
+    if (instagram.enabled && !instagram.title.trim()) {
+      setError("Instagram 제목을 입력해주세요.")
       return
     }
 
@@ -89,11 +109,26 @@ export function UploadForm({ connections }: UploadFormProps) {
     setSuccessMessage(null)
 
     try {
+      const platforms: { platform: string; title: string; description: string }[] = []
+
+      if (youtube.enabled) {
+        platforms.push({
+          platform: "youtube",
+          title: youtube.title.trim(),
+          description: youtube.description.trim(),
+        })
+      }
+      if (instagram.enabled) {
+        platforms.push({
+          platform: "instagram",
+          title: instagram.title.trim(),
+          description: instagram.description.trim(),
+        })
+      }
+
       const formData = new FormData()
       formData.append("file", file)
-      formData.append("title", title.trim())
-      formData.append("description", description.trim())
-      formData.append("platforms", JSON.stringify(Array.from(selectedPlatforms)))
+      formData.append("platforms", JSON.stringify(platforms))
 
       const response = await fetch("/api/publish", {
         method: "POST",
@@ -107,9 +142,8 @@ export function UploadForm({ connections }: UploadFormProps) {
 
       setSuccessMessage("영상이 성공적으로 업로드되었습니다!")
       setFile(null)
-      setTitle("")
-      setDescription("")
-      setSelectedPlatforms(new Set())
+      setYoutube({ enabled: false, title: "", description: "" })
+      setInstagram({ enabled: false, title: "", description: "" })
     } catch (err) {
       const message = err instanceof Error ? err.message : "업로드 중 오류가 발생했습니다."
       setError(message)
@@ -117,8 +151,6 @@ export function UploadForm({ connections }: UploadFormProps) {
       setIsUploading(false)
     }
   }
-
-  const canSubmit = file && title.trim() && selectedPlatforms.size > 0 && !isUploading
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -191,155 +223,31 @@ export function UploadForm({ connections }: UploadFormProps) {
         )}
       </Card>
 
-      {/* Title */}
-      <Card>
-        <div className="space-y-4">
-          <div className="space-y-1.5">
-            <label
-              htmlFor="video-title"
-              className="block text-sm font-medium text-gray-700"
-            >
-              제목 <span className="text-red-500">*</span>
-            </label>
-            <input
-              id="video-title"
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="영상 제목을 입력하세요"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
-              required
-              disabled={isUploading}
-            />
-          </div>
+      {/* YouTube Block */}
+      <PlatformBlock
+        platform="youtube"
+        isConnected={!!youtubeConnection}
+        enabled={youtube.enabled}
+        onToggle={(checked) => setYoutube((prev) => ({ ...prev, enabled: checked }))}
+        title={youtube.title}
+        onTitleChange={(value) => setYoutube((prev) => ({ ...prev, title: value }))}
+        description={youtube.description}
+        onDescriptionChange={(value) => setYoutube((prev) => ({ ...prev, description: value }))}
+        disabled={isUploading}
+      />
 
-          {/* Description */}
-          <div className="space-y-1.5">
-            <label
-              htmlFor="video-description"
-              className="block text-sm font-medium text-gray-700"
-            >
-              설명 <span className="text-gray-400">(선택)</span>
-            </label>
-            <textarea
-              id="video-description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="영상에 대한 설명을 입력하세요"
-              rows={4}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none text-gray-900"
-              disabled={isUploading}
-            />
-          </div>
-        </div>
-      </Card>
-
-      {/* Platform selection */}
-      <Card>
-        <label className="block text-sm font-medium text-gray-700 mb-3">
-          업로드할 플랫폼
-        </label>
-
-        <div className="space-y-3">
-          {/* YouTube */}
-          <label
-            className={`flex items-center justify-between rounded-lg border px-4 py-3 transition-colors ${
-              youtubeConnection
-                ? "cursor-pointer hover:bg-gray-50"
-                : "opacity-50 cursor-not-allowed"
-            } ${
-              selectedPlatforms.has("youtube")
-                ? "border-blue-500 bg-blue-50"
-                : "border-gray-200"
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                checked={selectedPlatforms.has("youtube")}
-                onChange={() => handleTogglePlatform("youtube")}
-                disabled={!youtubeConnection || isUploading}
-                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="text-lg">🔴</span>
-              <div>
-                <span className="text-sm font-medium text-gray-900">
-                  YouTube Shorts
-                </span>
-                {youtubeConnection ? (
-                  <p className="text-xs text-gray-500">
-                    {youtubeConnection.platformUsername || "연결됨"}
-                  </p>
-                ) : (
-                  <p className="text-xs text-gray-400">연결 필요</p>
-                )}
-              </div>
-            </div>
-            {youtubeConnection ? (
-              <span className="inline-flex items-center gap-1 text-xs text-green-600">
-                <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                연결됨
-              </span>
-            ) : (
-              <span className="text-xs text-gray-400">미연결</span>
-            )}
-          </label>
-
-          {/* Instagram */}
-          <label
-            className={`flex items-center justify-between rounded-lg border px-4 py-3 transition-colors ${
-              instagramConnection
-                ? "cursor-pointer hover:bg-gray-50"
-                : "opacity-50 cursor-not-allowed"
-            } ${
-              selectedPlatforms.has("instagram")
-                ? "border-blue-500 bg-blue-50"
-                : "border-gray-200"
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                checked={selectedPlatforms.has("instagram")}
-                onChange={() => handleTogglePlatform("instagram")}
-                disabled={!instagramConnection || isUploading}
-                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="text-lg">📷</span>
-              <div>
-                <span className="text-sm font-medium text-gray-900">
-                  Instagram Reels
-                </span>
-                {instagramConnection ? (
-                  <p className="text-xs text-gray-500">
-                    {instagramConnection.platformUsername || "연결됨"}
-                  </p>
-                ) : (
-                  <p className="text-xs text-gray-400">연결 필요</p>
-                )}
-              </div>
-            </div>
-            {instagramConnection ? (
-              <span className="inline-flex items-center gap-1 text-xs text-green-600">
-                <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                연결됨
-              </span>
-            ) : (
-              <span className="text-xs text-gray-400">미연결</span>
-            )}
-          </label>
-        </div>
-
-        {!youtubeConnection && !instagramConnection && (
-          <p className="mt-3 text-sm text-gray-500">
-            영상을 업로드하려면 먼저{" "}
-            <a href="/dashboard/connections" className="text-blue-600 hover:underline">
-              플랫폼을 연결
-            </a>
-            해주세요.
-          </p>
-        )}
-      </Card>
+      {/* Instagram Block */}
+      <PlatformBlock
+        platform="instagram"
+        isConnected={!!instagramConnection}
+        enabled={instagram.enabled}
+        onToggle={(checked) => setInstagram((prev) => ({ ...prev, enabled: checked }))}
+        title={instagram.title}
+        onTitleChange={(value) => setInstagram((prev) => ({ ...prev, title: value }))}
+        description={instagram.description}
+        onDescriptionChange={(value) => setInstagram((prev) => ({ ...prev, description: value }))}
+        disabled={isUploading}
+      />
 
       {/* Submit */}
       <Button

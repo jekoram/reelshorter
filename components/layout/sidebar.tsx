@@ -1,9 +1,8 @@
 "use client"
 
 import { usePathname } from "next/navigation"
-import { useSession, signOut } from "next-auth/react"
 import Link from "next/link"
-import { UploadCloud, Link as LinkIcon, Clock, Settings, LogOut } from "lucide-react"
+import { UploadCloud, Link as LinkIcon, Clock, Settings } from "lucide-react"
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Upload", icon: UploadCloud },
@@ -14,14 +13,9 @@ const NAV_ITEMS = [
 
 export function Sidebar() {
   const pathname = usePathname()
-  const { data: session } = useSession()
-
-  const handleLogout = async () => {
-    await signOut({ callbackUrl: "/login" })
-  }
 
   return (
-    <aside className="w-64 bg-gray-900 text-white min-h-screen flex flex-col">
+    <aside className="w-56 bg-gray-900 text-white min-h-screen flex flex-col">
       {/* Logo */}
       <div className="px-6 py-6">
         <h1 className="text-lg font-bold tracking-[0.2em] text-white">
@@ -58,23 +52,6 @@ export function Sidebar() {
         </ul>
       </nav>
 
-      {/* User section */}
-      <div className="px-3 pb-6 mt-auto">
-        <div className="border-t border-white/10 pt-4">
-          {session?.user?.email && (
-            <p className="px-4 text-xs text-gray-400 truncate mb-3">
-              {session.user.email}
-            </p>
-          )}
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-colors w-full"
-          >
-            <LogOut className="h-5 w-5 shrink-0" />
-            <span>로그아웃</span>
-          </button>
-        </div>
-      </div>
     </aside>
   )
 }

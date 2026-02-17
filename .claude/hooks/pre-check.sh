@@ -1,38 +1,50 @@
 #!/bin/bash
-# PreToolUse hook: 코드 작성 전 디자인 시스템/컨벤션 규칙 리마인드
-# write, edit 도구로 TSX/TS/CSS 파일을 수정할 때 작동
+# PreToolUse hook: PDCA 계획 확인 + 컨벤션 리마인드
+# Write/Edit 도구로 소스 파일 수정 시 작동
+# 역할: 작성 "전" 가이드라인 제공 (PDCA + 규칙 안내)
 
 INPUT=$(cat)
-TOOL=$(echo "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('tool',''))" 2>/dev/null)
 FILE_PATH=$(echo "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin).get('input',{}); print(d.get('file_path','') or d.get('path',''))" 2>/dev/null)
 
-# app/, components/, lib/, actions/, types/ 하위 TSX/TS/CSS 파일만 대상
+# docs/, .claude/, config 파일 등은 검사 제외
 case "$FILE_PATH" in
-  *app/*|*components/*|*lib/*|*actions/*|*types/*|*.tsx|*.ts|*.css)
-    RULES=""
-
-    # CSS 파일 → 디자인 시스템 규칙
-    if [[ "$FILE_PATH" == *.css ]]; then
-      RULES="[design-system] Dark 코스믹 테마. 글래스모피즘: bg-white/[0.08] backdrop-blur-md border-white/[0.15] rounded-2xl. CTA: bg-gradient-to-r from-accent-red to-accent-orange. tailwind.config.ts 커스텀 색상만 사용. 상세: docs/DESIGN_SYSTEM.md 참조."
-    fi
-
-    # TSX 파일 → 컨벤션 + 디자인 규칙
-    if [[ "$FILE_PATH" == *.tsx ]]; then
-      RULES="[conventions] 컴포넌트 PascalCase, 파일 kebab-case. 'use client'는 클라이언트 훅 사용 시만. Props interface 정의. Import 순서: React/Next → 외부 → 내부(@/) → 타입. Tailwind 클래스 순서: 레이아웃→크기→여백→배경→테두리→텍스트. 상세: docs/CONVENTIONS.md, docs/DESIGN_SYSTEM.md 참조."
-    fi
-
-    # TS 파일 (비-TSX) → 기능 규칙
-    if [[ "$FILE_PATH" == *.ts ]] && [[ "$FILE_PATH" != *.tsx ]]; then
-      RULES="[features] API Route: NextRequest/NextResponse 사용. Server Action: 'use server' 지시문. OAuth 토큰 서버 사이드에서만 처리. 암호화: lib/encryption.ts. 상세: docs/FEATURES.md, docs/CONVENTIONS.md 참조."
-    fi
-
-    if [ -n "$RULES" ]; then
-      echo "{\"decision\": \"approve\", \"reason\": \"$RULES\"}"
-    else
-      echo '{"decision": "approve"}'
-    fi
+  *app/*|*components/*|*lib/*|*actions/*|*types/*)
     ;;
   *)
     echo '{"decision": "approve"}'
+    exit 0
     ;;
 esac
+
+MESSAGES=""
+
+# ── 1. PDCA 계획 존재 여부 확인 ──
+PDCA_STATUS="docs/.pdca-status.json"
+if [ -f "$PDCA_STATUS" ]; then
+  ACTIVE=$(python3 -c "
+import json
+with open('$PDCA_STATUS') as f:
+    d = json.load(f)
+features = d.get('activeFeatures', [])
+if features:
+    primary = d.get('primaryFeature', features[0])
+    phase = d.get('features', {}).get(primary, {}).get('phase', 'unknown')
+    print(f'[PDCA] Feature: {primary}, Phase: {phase}.')
+else:
+    print('[PDCA] 활성 기능 없음. /pdca plan 으로 계획 먼저 작성 권장.')
+" 2>/dev/null)
+  MESSAGES="$ACTIVE"
+else
+  MESSAGES="[PDCA] .pdca-status.json 없음. /pdca plan 으로 계획 먼저 작성 권장."
+fi
+
+# ── 2. 파일 타입별 컨벤션 리마인드 ──
+if [[ "$FILE_PATH" == *.css ]]; then
+  MESSAGES="$MESSAGES [design-system] Dark 코스믹 테마. 글래스모피즘 패턴. tailwind.config.ts 커스텀 색상만 사용. 상세: docs/DESIGN_SYSTEM.md"
+elif [[ "$FILE_PATH" == *.tsx ]]; then
+  MESSAGES="$MESSAGES [conventions] PascalCase 컴포넌트, kebab-case 파일. Import 순서: React/Next > 외부 > 내부(@/) > 타입. 상세: docs/CONVENTIONS.md"
+elif [[ "$FILE_PATH" == *.ts ]] && [[ "$FILE_PATH" != *.tsx ]]; then
+  MESSAGES="$MESSAGES [features] API: NextRequest/NextResponse. Server Action: 'use server'. OAuth 토큰 서버사이드만. 상세: docs/FEATURES.md"
+fi
+
+echo "{\"decision\": \"approve\", \"reason\": \"$MESSAGES\"}"

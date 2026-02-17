@@ -2,6 +2,7 @@
 
 import { useCallback } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { useDropzone } from "react-dropzone"
 import { useSession } from "next-auth/react"
@@ -56,7 +57,7 @@ function FloatingOrbs() {
 
 function HeroSection() {
   return (
-    <section className="text-center max-w-4xl mx-auto px-4 mb-12">
+    <section className="text-center max-w-4xl mx-auto px-4 pt-6 mb-12">
       <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white">
         Upload Once, Share Everywhere
       </h1>
@@ -70,9 +71,12 @@ function HeroSection() {
 // ── Upload Section (demo-only dropzone) ──
 
 function UploadSection() {
+  const { data: session } = useSession()
+  const router = useRouter()
+
   const onDrop = useCallback(() => {
-    // Demo only - no actual upload handling
-  }, [])
+    router.push(session ? "/dashboard" : "/signup")
+  }, [session, router])
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
