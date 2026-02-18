@@ -2,12 +2,13 @@ import { google } from "googleapis"
 import { Readable } from "stream"
 import { prisma } from "./prisma"
 import { encrypt, decrypt } from "./encryption"
+import { getGoogleClientId, getGoogleClientSecret } from "./google-credentials"
 
 // OAuth 클라이언트 생성
 function createOAuth2Client() {
   return new google.auth.OAuth2(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET
+    getGoogleClientId(),
+    getGoogleClientSecret()
   )
 }
 

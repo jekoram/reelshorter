@@ -2,12 +2,15 @@ import { NextRequest, NextResponse } from "next/server"
 import { google } from "googleapis"
 import { prisma } from "@/lib/prisma"
 import { encrypt } from "@/lib/encryption"
+import { getGoogleClientId, getGoogleClientSecret } from "@/lib/google-credentials"
 
-const oauth2Client = new google.auth.OAuth2(
-  process.env.GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET,
-  `${process.env.NEXTAUTH_URL}/api/oauth/youtube/callback`
-)
+function createOAuth2Client() {
+  return new google.auth.OAuth2(
+    getGoogleClientId(),
+    getGoogleClientSecret(),
+    `${process.env.NEXTAUTH_URL}/api/oauth/youtube/callback`
+  )
+}
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl
@@ -24,6 +27,7 @@ export async function GET(request: NextRequest) {
 
   try {
     // 토큰 교환
+    const oauth2Client = createOAuth2Client()
     const { tokens } = await oauth2Client.getToken(code)
     oauth2Client.setCredentials(tokens)
 

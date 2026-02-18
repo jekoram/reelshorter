@@ -2,12 +2,15 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { google } from "googleapis"
+import { getGoogleClientId, getGoogleClientSecret } from "@/lib/google-credentials"
 
-const oauth2Client = new google.auth.OAuth2(
-  process.env.GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET,
-  `${process.env.NEXTAUTH_URL}/api/oauth/youtube/callback`
-)
+function createOAuth2Client() {
+  return new google.auth.OAuth2(
+    getGoogleClientId(),
+    getGoogleClientSecret(),
+    `${process.env.NEXTAUTH_URL}/api/oauth/youtube/callback`
+  )
+}
 
 const SCOPES = [
   "https://www.googleapis.com/auth/youtube.upload",
@@ -20,6 +23,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
+  const oauth2Client = createOAuth2Client()
   const authUrl = oauth2Client.generateAuthUrl({
     access_type: "offline",
     scope: SCOPES,
