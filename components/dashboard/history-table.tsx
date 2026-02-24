@@ -79,7 +79,10 @@ export function HistoryTable({ logs }: HistoryTableProps) {
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:text-blue-700 transition-colors"
                     >
-                      <ExternalLink className="w-4 h-4" />
+                      <span className="flex items-center gap-1">
+                      보기
+                      <ExternalLink className="w-3 h-3" />
+                    </span>
                     </a>
                   ) : (
                     <span className="text-gray-300">—</span>

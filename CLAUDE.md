@@ -1,5 +1,14 @@
 # CLAUDE.md
 
+## PDCA 필수 규칙 (최우선)
+
+**모든 코드 변경은 반드시 PDCA 사이클을 따른다.**
+- 단순 버그 수정, 설정 변경 등 한 줄 수정도 예외 없음
+- 순서: Plan → Design → Do → Check(analyze) → Act(iterate) → Report
+- Plan/Design 문서 없이 코드 수정 금지
+- Do 완료 후 자동으로 Check → Act → Report 진행
+- `/pdca plan {feature}` 로 시작
+
 ## Debugging / Troubleshooting
 
 When diagnosing errors, start by checking foundational dependencies (runtime, package manager, OS-level tools) before investigating application-level config. Root causes are often missing prerequisites.

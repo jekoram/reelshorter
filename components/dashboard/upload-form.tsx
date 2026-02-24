@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react"
 import { useDropzone } from "react-dropzone"
-import { UploadCloud, X, FileVideo, Loader2 } from "lucide-react"
+import { UploadCloud, X, FileVideo, Loader2, ExternalLink } from "lucide-react"
 import { validateVideoFile } from "@/lib/validators"
 import { formatFileSize } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -26,6 +26,7 @@ export function UploadForm({ connections }: UploadFormProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [uploadedUrls, setUploadedUrls] = useState<{ platform: string; url: string }[]>([])
 
   const [youtube, setYoutube] = useState<PlatformInput>({
     enabled: false,
@@ -46,6 +47,7 @@ export function UploadForm({ connections }: UploadFormProps) {
     async (acceptedFiles: File[]) => {
       setError(null)
       setSuccessMessage(null)
+      setUploadedUrls([])
 
       const selected = acceptedFiles[0]
       if (!selected) return
@@ -107,6 +109,7 @@ export function UploadForm({ connections }: UploadFormProps) {
     setIsUploading(true)
     setError(null)
     setSuccessMessage(null)
+    setUploadedUrls([])
 
     try {
       const platforms: { platform: string; title: string; description: string }[] = []
@@ -135,12 +138,18 @@ export function UploadForm({ connections }: UploadFormProps) {
         body: formData,
       })
 
+      const data = await response.json()
+
       if (!response.ok) {
-        const data = await response.json()
         throw new Error(data.error || "업로드에 실패했습니다.")
       }
 
-      setSuccessMessage("영상이 성공적으로 업로드되었습니다!")
+      const urls = data.results
+        ?.filter((r: { success: boolean; url?: string }) => r.success && r.url)
+        .map((r: { platform: string; url: string }) => ({ platform: r.platform, url: r.url })) || []
+
+      setUploadedUrls(urls)
+      setSuccessMessage(data.message || "영상이 성공적으로 업로드되었습니다!")
       setFile(null)
       setYoutube({ enabled: false, title: "", description: "" })
       setInstagram({ enabled: false, title: "", description: "" })
@@ -163,8 +172,28 @@ export function UploadForm({ connections }: UploadFormProps) {
 
       {/* Success message */}
       {successMessage && (
-        <div className="bg-green-50 text-green-600 px-4 py-3 rounded-lg text-sm">
-          {successMessage}
+        <div className="bg-green-50 px-4 py-3 rounded-lg text-sm">
+          <p className="text-green-600">{successMessage}</p>
+          {uploadedUrls.length > 0 && (
+            <div className="mt-2 space-y-1">
+              {uploadedUrls.map((item) => (
+                <div key={item.platform} className="flex items-center gap-2">
+                  <span className="text-green-700 font-medium">
+                    {item.platform === "youtube" ? "YouTube" : "Instagram"}
+                  </span>
+                  <a
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-green-600 hover:text-green-800 underline flex items-center gap-1"
+                  >
+                    {item.url}
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

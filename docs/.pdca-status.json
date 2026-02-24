@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-17T07:40:00.000Z",
+  "lastUpdated": "2026-02-24T00:00:00.000Z",
   "activeFeatures": [],
   "primaryFeature": null,
   "features": {
@@ -13,6 +13,16 @@
       "reportDoc": "docs/04-report/dashboard-ui-improvement.report.md",
       "createdAt": "2026-02-17T07:00:00.000Z",
       "completedAt": "2026-02-17T07:40:00.000Z"
+    },
+    "upload-result-url": {
+      "phase": "completed",
+      "matchRate": 98,
+      "planDoc": "docs/01-plan/features/upload-result-url.plan.md",
+      "designDoc": "docs/02-design/features/upload-result-url.design.md",
+      "analysisDoc": "docs/03-analysis/upload-result-url.analysis.md",
+      "reportDoc": "docs/04-report/upload-result-url.report.md",
+      "createdAt": "2026-02-24T00:00:00.000Z",
+      "completedAt": "2026-02-24T00:00:00.000Z"
     }
   },
   "pipeline": {
@@ -23,13 +33,18 @@
   "session": {
     "startedAt": "2026-02-09T08:30:41.224Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-17T07:40:00.000Z"
+    "lastActivity": "2026-02-24T00:00:00.000Z"
   },
   "history": [
     {
       "feature": "dashboard-ui-improvement",
       "completedAt": "2026-02-17T07:40:00.000Z",
       "matchRate": 95
+    },
+    {
+      "feature": "upload-result-url",
+      "completedAt": "2026-02-24T00:00:00.000Z",
+      "matchRate": 98
     }
   ]
 }
