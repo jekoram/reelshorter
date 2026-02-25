@@ -47,13 +47,16 @@ export async function GET(request: NextRequest) {
     }
     const pagesData = await pagesRes.json()
 
+    // 디버그: 반환된 Pages 확인
+    console.log("Facebook Pages response:", JSON.stringify(pagesData, null, 2))
+
     // Instagram Business Account가 연결된 Page 찾기
     const pageWithIg = pagesData.data?.find(
       (page: { instagram_business_account?: { id: string } }) => page.instagram_business_account
     )
 
     if (!pageWithIg?.instagram_business_account?.id) {
-      console.error("No Instagram Business Account found on any Facebook Page")
+      console.error("No Instagram Business Account found. Pages:", JSON.stringify(pagesData.data))
       return NextResponse.redirect(`${redirectUrl}?error=instagram_no_business`)
     }
 
