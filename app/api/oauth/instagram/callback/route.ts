@@ -51,62 +51,74 @@ export async function GET(request: NextRequest) {
     const permData = await permRes.json()
     console.log("Token permissions:", JSON.stringify(permData))
 
-    // 2. Facebook Pages 조회 (직접 역할)
-    const pagesRes = await fetch(
-      `${GRAPH_URL}/me/accounts?fields=id,name,instagram_business_account&access_token=${fbAccessToken}`
+    // 2. 토큰 검사: 어떤 자산에 접근 가능한지 확인
+    const appToken = `${process.env.META_APP_ID}|${process.env.META_APP_SECRET}`
+    const debugRes = await fetch(
+      `${GRAPH_URL}/debug_token?input_token=${fbAccessToken}&access_token=${appToken}`
     )
-    const pagesData = pagesRes.ok ? await pagesRes.json() : { data: [] }
-    console.log("Direct pages:", JSON.stringify(pagesData))
+    const debugData = debugRes.ok ? await debugRes.json() : null
+    console.log("Debug token:", JSON.stringify(debugData, null, 2))
 
-    let pageWithIg = pagesData.data?.find(
-      (page: { instagram_business_account?: { id: string } }) => page.instagram_business_account
+    // granular_scopes에서 허용된 Page ID 추출
+    let igAccountId: string | null = null
+    const granularScopes = debugData?.data?.granular_scopes || []
+
+    // pages_show_list scope에서 Page ID 찾기
+    const pagesScope = granularScopes.find(
+      (s: { scope: string; target_ids?: string[] }) => s.scope === "pages_show_list"
     )
+    const grantedPageIds: string[] = pagesScope?.target_ids || []
+    console.log("Granted page IDs:", grantedPageIds)
 
-    // 3. 직접 역할 없으면 Business Manager 경로로 시도
-    if (!pageWithIg?.instagram_business_account?.id) {
-      console.log("No direct pages, trying Business Manager path...")
+    // instagram_basic scope에서 IG Account ID 찾기
+    const igScope = granularScopes.find(
+      (s: { scope: string; target_ids?: string[] }) => s.scope === "instagram_basic"
+    )
+    const grantedIgIds: string[] = igScope?.target_ids || []
+    console.log("Granted IG IDs:", grantedIgIds)
 
-      const bizRes = await fetch(
-        `${GRAPH_URL}/me/businesses?fields=id,name&access_token=${fbAccessToken}`
+    // 방법 1: 허용된 Page ID로 직접 instagram_business_account 조회
+    for (const pageId of grantedPageIds) {
+      const pageRes = await fetch(
+        `${GRAPH_URL}/${pageId}?fields=id,name,instagram_business_account&access_token=${fbAccessToken}`
       )
-      const bizData = bizRes.ok ? await bizRes.json() : { data: [] }
-      console.log("Businesses:", JSON.stringify(bizData))
-
-      for (const biz of bizData.data || []) {
-        // Business의 소유 페이지에서 Instagram 계정 찾기
-        const bizPagesRes = await fetch(
-          `${GRAPH_URL}/${biz.id}/owned_pages?fields=id,name,instagram_business_account&access_token=${fbAccessToken}`
-        )
-        const bizPagesData = bizPagesRes.ok ? await bizPagesRes.json() : { data: [] }
-        console.log(`Business ${biz.name} pages:`, JSON.stringify(bizPagesData))
-
-        pageWithIg = bizPagesData.data?.find(
-          (page: { instagram_business_account?: { id: string } }) => page.instagram_business_account
-        )
-        if (pageWithIg?.instagram_business_account?.id) break
-
-        // owned_pages에도 없으면 Business의 Instagram 계정 직접 조회
-        const bizIgRes = await fetch(
-          `${GRAPH_URL}/${biz.id}/instagram_accounts?fields=id,username&access_token=${fbAccessToken}`
-        )
-        const bizIgData = bizIgRes.ok ? await bizIgRes.json() : { data: [] }
-        console.log(`Business ${biz.name} IG accounts:`, JSON.stringify(bizIgData))
-
-        if (bizIgData.data?.length > 0) {
-          const igAccount = bizIgData.data[0]
-          // Page 없이 직접 IG 계정으로 진행
-          pageWithIg = { instagram_business_account: { id: igAccount.id } }
+      if (pageRes.ok) {
+        const pageData = await pageRes.json()
+        console.log(`Page ${pageId}:`, JSON.stringify(pageData))
+        if (pageData.instagram_business_account?.id) {
+          igAccountId = pageData.instagram_business_account.id
           break
         }
       }
     }
 
-    if (!pageWithIg?.instagram_business_account?.id) {
+    // 방법 2: granular_scopes에서 직접 IG ID를 받은 경우
+    if (!igAccountId && grantedIgIds.length > 0) {
+      igAccountId = grantedIgIds[0]
+      console.log("Using IG ID from granular_scopes:", igAccountId)
+    }
+
+    // 방법 3: /me/accounts 폴백
+    if (!igAccountId) {
+      const pagesRes = await fetch(
+        `${GRAPH_URL}/me/accounts?fields=id,name,instagram_business_account&access_token=${fbAccessToken}`
+      )
+      const pagesData = pagesRes.ok ? await pagesRes.json() : { data: [] }
+      console.log("Fallback /me/accounts:", JSON.stringify(pagesData))
+
+      const pageWithIg = pagesData.data?.find(
+        (page: { instagram_business_account?: { id: string } }) => page.instagram_business_account
+      )
+      if (pageWithIg?.instagram_business_account?.id) {
+        igAccountId = pageWithIg.instagram_business_account.id
+      }
+    }
+
+    if (!igAccountId) {
       console.error("No Instagram Business Account found via any path")
       return NextResponse.redirect(`${redirectUrl}?error=instagram_no_business`)
     }
 
-    const igAccountId = pageWithIg.instagram_business_account.id
     console.log("Found IG Account ID:", igAccountId)
 
     // 3. Instagram 계정 정보 조회
