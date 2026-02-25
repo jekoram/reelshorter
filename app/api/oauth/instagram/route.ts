@@ -19,6 +19,7 @@ export async function GET() {
     config_id: process.env.META_CONFIG_ID!,
     response_type: "code",
     state: session.user.id,
+    auth_type: "rerequest",
   })
 
   return NextResponse.redirect(
