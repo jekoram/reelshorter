@@ -12,10 +12,11 @@ export async function GET() {
 
   const redirectUri = `${process.env.NEXTAUTH_URL}/api/oauth/instagram/callback`
 
+  // Facebook Login for Business: config_id 사용 (scope 대신)
   const params = new URLSearchParams({
     client_id: process.env.META_APP_ID!,
     redirect_uri: redirectUri,
-    scope: "instagram_business_basic,instagram_business_content_publish,pages_show_list,pages_read_engagement",
+    config_id: process.env.META_CONFIG_ID!,
     response_type: "code",
     state: session.user.id,
   })
