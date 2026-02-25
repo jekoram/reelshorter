@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { formatDate } from "@/lib/utils"
 import Link from "next/link"
+import { PasswordChangeForm } from "@/components/dashboard/password-change-form"
 
 export default async function SettingsPage() {
   const session = await getServerSession(authOptions)
@@ -14,9 +15,12 @@ export default async function SettingsPage() {
     select: {
       email: true,
       name: true,
+      password: true,
       createdAt: true,
     },
   })
+
+  const hasPassword = !!user?.password
 
   const connections = await prisma.connection.findMany({
     where: { userId: session.user.id },
@@ -66,6 +70,16 @@ export default async function SettingsPage() {
           </div>
         </dl>
       </section>
+
+      {/* 비밀번호 변경 - 이메일 가입 유저만 표시 */}
+      {hasPassword && (
+        <section className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
+            비밀번호 변경
+          </h2>
+          <PasswordChangeForm />
+        </section>
+      )}
 
       {/* 플랫폼 연결 상태 */}
       <section className="bg-white rounded-xl border border-gray-200 p-6">
