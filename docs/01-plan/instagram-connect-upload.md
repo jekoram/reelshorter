@@ -66,7 +66,7 @@ META_APP_SECRET=    # Meta App Secret
 | 항목 | 파일 | 내용 |
 |------|------|------|
 | 연결 버튼 활성화 | `components/dashboard/platform-card.tsx` | "Coming Soon" 제거, 연결 버튼 활성화 |
-| 업로드 폼 | `components/dashboard/upload-form.tsx` | Instagram 선택 시 업로드 활성화 |
+| 업로드 폼 | `components/dashboard/upload-form.tsx` | Instagram 선택 시 제목 필드 숨김, 캡션(설명) 필드만 표시 |
 
 ---
 

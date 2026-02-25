@@ -7,8 +7,8 @@ interface PlatformBlockProps {
   isConnected: boolean
   enabled: boolean
   onToggle: (enabled: boolean) => void
-  title: string
-  onTitleChange: (value: string) => void
+  title?: string
+  onTitleChange?: (value: string) => void
   description: string
   onDescriptionChange: (value: string) => void
   disabled?: boolean
@@ -90,30 +90,33 @@ export function PlatformBlock({
         </p>
       )}
 
-      {/* Title */}
-      <div className="space-y-1.5 mb-3">
-        <label className="block text-sm font-medium text-gray-700">
-          제목
-        </label>
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => onTitleChange(e.target.value)}
-          placeholder="영상 제목을 입력하세요"
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
-          disabled={fieldsDisabled}
-        />
-      </div>
+      {/* Title (YouTube only) */}
+      {platform === "youtube" && (
+        <div className="space-y-1.5 mb-3">
+          <label className="block text-sm font-medium text-gray-700">
+            제목
+          </label>
+          <input
+            type="text"
+            value={title || ""}
+            onChange={(e) => onTitleChange?.(e.target.value)}
+            placeholder="영상 제목을 입력하세요"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
+            disabled={fieldsDisabled}
+          />
+        </div>
+      )}
 
-      {/* Description */}
+      {/* Description / Caption */}
       <div className="space-y-1.5">
         <label className="block text-sm font-medium text-gray-700">
-          설명 <span className="text-gray-400">(선택)</span>
+          {platform === "instagram" ? "캡션" : "설명"}{" "}
+          {platform === "youtube" && <span className="text-gray-400">(선택)</span>}
         </label>
         <textarea
           value={description}
           onChange={(e) => onDescriptionChange(e.target.value)}
-          placeholder="영상에 대한 설명을 입력하세요"
+          placeholder={platform === "instagram" ? "캡션을 입력하세요 (해시태그 포함 가능)" : "영상에 대한 설명을 입력하세요"}
           rows={3}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none text-gray-900 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
           disabled={fieldsDisabled}

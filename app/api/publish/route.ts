@@ -43,9 +43,15 @@ export async function POST(request: NextRequest) {
     }
 
     for (const entry of platformEntries) {
-      if (!entry.title || entry.title.trim().length === 0) {
+      if (entry.platform === "youtube" && (!entry.title || entry.title.trim().length === 0)) {
         return NextResponse.json(
-          { error: `${entry.platform} 제목을 입력해주세요.` },
+          { error: "YouTube 제목을 입력해주세요." },
+          { status: 400 }
+        )
+      }
+      if (entry.platform === "instagram" && (!entry.description || entry.description.trim().length === 0)) {
+        return NextResponse.json(
+          { error: "Instagram 캡션을 입력해주세요." },
           { status: 400 }
         )
       }
@@ -129,7 +135,7 @@ export async function POST(request: NextRequest) {
       } else if (entry.platform === "instagram") {
         try {
           const result = await uploadToInstagramReels(session.user.id, {
-            caption: entry.description.trim() || entry.title.trim(),
+            caption: entry.description.trim(),
             videoBuffer: buffer,
             mimeType: file.type || "video/mp4",
             fileName: file.name,
