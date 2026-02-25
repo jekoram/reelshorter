@@ -2,16 +2,10 @@ import { prisma } from "./prisma"
 import { encrypt, decrypt } from "./encryption"
 import { put, del } from "@vercel/blob"
 
-const GRAPH_API_BASE = "https://graph.instagram.com"
 const GRAPH_API_VERSION = "v21.0"
 const GRAPH_URL = `https://graph.facebook.com/${GRAPH_API_VERSION}`
 
-// ── Token Exchange ──
-
-interface ShortLivedToken {
-  access_token: string
-  user_id: number
-}
+// ── Token Refresh (Facebook Login for Business) ──
 
 interface LongLivedToken {
   access_token: string
@@ -19,74 +13,19 @@ interface LongLivedToken {
   expires_in: number
 }
 
-export async function exchangeCodeForToken(code: string, redirectUri: string): Promise<ShortLivedToken> {
-  const res = await fetch("https://api.instagram.com/oauth/access_token", {
-    method: "POST",
-    body: new URLSearchParams({
-      client_id: process.env.META_APP_ID!,
-      client_secret: process.env.META_APP_SECRET!,
-      grant_type: "authorization_code",
-      redirect_uri: redirectUri,
-      code,
-    }),
-  })
-
-  if (!res.ok) {
-    const error = await res.text()
-    console.error("Instagram token exchange failed:", error)
-    throw new Error("Instagram 토큰 교환에 실패했습니다.")
-  }
-
-  return res.json()
-}
-
-export async function exchangeForLongLivedToken(shortLivedToken: string): Promise<LongLivedToken> {
-  const params = new URLSearchParams({
-    grant_type: "ig_exchange_token",
-    client_secret: process.env.META_APP_SECRET!,
-    access_token: shortLivedToken,
-  })
-
-  const res = await fetch(`${GRAPH_API_BASE}/access_token?${params}`)
-
-  if (!res.ok) {
-    const error = await res.text()
-    console.error("Instagram long-lived token exchange failed:", error)
-    throw new Error("Instagram 장기 토큰 변환에 실패했습니다.")
-  }
-
-  return res.json()
-}
-
 export async function refreshLongLivedToken(token: string): Promise<LongLivedToken> {
+  // Facebook Login for Business: fb_exchange_token으로 갱신
   const params = new URLSearchParams({
-    grant_type: "ig_refresh_token",
-    access_token: token,
+    grant_type: "fb_exchange_token",
+    client_id: process.env.META_APP_ID!,
+    client_secret: process.env.META_APP_SECRET!,
+    fb_exchange_token: token,
   })
 
-  const res = await fetch(`${GRAPH_API_BASE}/refresh_access_token?${params}`)
+  const res = await fetch(`${GRAPH_URL}/oauth/access_token?${params}`)
 
   if (!res.ok) {
     throw new Error("Instagram 토큰 갱신에 실패했습니다.")
-  }
-
-  return res.json()
-}
-
-// ── User Info ──
-
-interface InstagramUser {
-  id: string
-  username: string
-}
-
-export async function getInstagramUser(accessToken: string): Promise<InstagramUser> {
-  const res = await fetch(`${GRAPH_API_BASE}/me?fields=id,username&access_token=${accessToken}`)
-
-  if (!res.ok) {
-    const error = await res.text()
-    console.error("Instagram user fetch failed:", error)
-    throw new Error("Instagram 계정 정보를 가져올 수 없습니다.")
   }
 
   return res.json()

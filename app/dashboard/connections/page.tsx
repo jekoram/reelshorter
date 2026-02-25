@@ -36,6 +36,7 @@ export default async function ConnectionsPage({ searchParams }: ConnectionsPageP
     youtube_failed: "YouTube 연결에 실패했습니다. 다시 시도해주세요.",
     instagram_denied: "Instagram 연결이 취소되었습니다.",
     instagram_failed: "Instagram 연결에 실패했습니다. 다시 시도해주세요.",
+    instagram_no_business: "Instagram Business 계정이 Facebook 페이지에 연결되어 있지 않습니다. Instagram 설정에서 확인해주세요.",
   }
 
   const successMessage = searchParams.success
