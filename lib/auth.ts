@@ -29,8 +29,12 @@ export const authOptions: NextAuthOptions = {
           where: { email: credentials.email },
         })
 
-        if (!user || !user.password) {
+        if (!user) {
           throw new Error("등록되지 않은 이메일입니다.")
+        }
+
+        if (!user.password) {
+          throw new Error("이 계정은 Google 로그인으로만 사용 가능합니다.")
         }
 
         const isValid = await bcrypt.compare(credentials.password, user.password)
