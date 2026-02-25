@@ -28,11 +28,14 @@ export default async function ConnectionsPage({ searchParams }: ConnectionsPageP
   // 메시지 매핑
   const successMessages: Record<string, string> = {
     youtube: "YouTube가 성공적으로 연결되었습니다!",
+    instagram: "Instagram이 성공적으로 연결되었습니다!",
   }
 
   const errorMessages: Record<string, string> = {
     youtube_denied: "YouTube 연결이 취소되었습니다.",
     youtube_failed: "YouTube 연결에 실패했습니다. 다시 시도해주세요.",
+    instagram_denied: "Instagram 연결이 취소되었습니다.",
+    instagram_failed: "Instagram 연결에 실패했습니다. 다시 시도해주세요.",
   }
 
   const successMessage = searchParams.success
@@ -71,13 +74,13 @@ export default async function ConnectionsPage({ searchParams }: ConnectionsPageP
           disabled={false}
         />
 
-        {/* Instagram (Coming Soon) */}
+        {/* Instagram */}
         <ConnectionsClient
           platform="instagram"
           isConnected={!!instagramConnection?.isActive}
           username={instagramConnection?.platformUsername || undefined}
           connectUrl="/api/oauth/instagram"
-          disabled={true}
+          disabled={false}
         />
       </div>
     </div>

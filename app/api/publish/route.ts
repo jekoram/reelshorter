@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { uploadToYouTube } from "@/lib/youtube"
+import { uploadToInstagramReels } from "@/lib/instagram"
 import { FILE_CONSTRAINTS } from "@/lib/validators"
 
 export async function POST(request: NextRequest) {
@@ -126,12 +127,50 @@ export async function POST(request: NextRequest) {
           })
         }
       } else if (entry.platform === "instagram") {
-        // Instagram은 Phase 6에서 구현 예정
-        results.push({
-          platform: "instagram",
-          success: false,
-          error: "Instagram 업로드는 아직 지원하지 않습니다.",
-        })
+        try {
+          const result = await uploadToInstagramReels(session.user.id, {
+            caption: entry.description.trim() || entry.title.trim(),
+            videoBuffer: buffer,
+            mimeType: file.type || "video/mp4",
+            fileName: file.name,
+          })
+
+          await prisma.publishLog.create({
+            data: {
+              userId: session.user.id,
+              platform: "instagram",
+              videoTitle: entry.title.trim(),
+              status: "success",
+              platformVideoId: result.mediaId,
+              platformUrl: result.url,
+            },
+          })
+
+          results.push({
+            platform: "instagram",
+            success: true,
+            url: result.url,
+          })
+        } catch (err) {
+          const errorMessage = err instanceof Error ? err.message : "Instagram 업로드에 실패했습니다."
+          console.error("Instagram upload error:", err)
+
+          await prisma.publishLog.create({
+            data: {
+              userId: session.user.id,
+              platform: "instagram",
+              videoTitle: entry.title.trim(),
+              status: "failed",
+              errorMessage,
+            },
+          })
+
+          results.push({
+            platform: "instagram",
+            success: false,
+            error: errorMessage,
+          })
+        }
       }
     }
 
