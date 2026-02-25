@@ -51,31 +51,63 @@ export async function GET(request: NextRequest) {
     const permData = await permRes.json()
     console.log("Token permissions:", JSON.stringify(permData))
 
-    // 2. Facebook Pages 조회
+    // 2. Facebook Pages 조회 (직접 역할)
     const pagesRes = await fetch(
       `${GRAPH_URL}/me/accounts?fields=id,name,instagram_business_account&access_token=${fbAccessToken}`
     )
-    if (!pagesRes.ok) {
-      const pagesErr = await pagesRes.text()
-      console.error("Facebook Pages API error:", pagesErr)
-      throw new Error("Facebook 페이지 조회 실패")
-    }
-    const pagesData = await pagesRes.json()
+    const pagesData = pagesRes.ok ? await pagesRes.json() : { data: [] }
+    console.log("Direct pages:", JSON.stringify(pagesData))
 
-    // 디버그: 반환된 Pages 확인
-    console.log("Facebook Pages response:", JSON.stringify(pagesData, null, 2))
-
-    // Instagram Business Account가 연결된 Page 찾기
-    const pageWithIg = pagesData.data?.find(
+    let pageWithIg = pagesData.data?.find(
       (page: { instagram_business_account?: { id: string } }) => page.instagram_business_account
     )
 
+    // 3. 직접 역할 없으면 Business Manager 경로로 시도
     if (!pageWithIg?.instagram_business_account?.id) {
-      console.error("No Instagram Business Account found. Pages:", JSON.stringify(pagesData.data))
+      console.log("No direct pages, trying Business Manager path...")
+
+      const bizRes = await fetch(
+        `${GRAPH_URL}/me/businesses?fields=id,name&access_token=${fbAccessToken}`
+      )
+      const bizData = bizRes.ok ? await bizRes.json() : { data: [] }
+      console.log("Businesses:", JSON.stringify(bizData))
+
+      for (const biz of bizData.data || []) {
+        // Business의 소유 페이지에서 Instagram 계정 찾기
+        const bizPagesRes = await fetch(
+          `${GRAPH_URL}/${biz.id}/owned_pages?fields=id,name,instagram_business_account&access_token=${fbAccessToken}`
+        )
+        const bizPagesData = bizPagesRes.ok ? await bizPagesRes.json() : { data: [] }
+        console.log(`Business ${biz.name} pages:`, JSON.stringify(bizPagesData))
+
+        pageWithIg = bizPagesData.data?.find(
+          (page: { instagram_business_account?: { id: string } }) => page.instagram_business_account
+        )
+        if (pageWithIg?.instagram_business_account?.id) break
+
+        // owned_pages에도 없으면 Business의 Instagram 계정 직접 조회
+        const bizIgRes = await fetch(
+          `${GRAPH_URL}/${biz.id}/instagram_accounts?fields=id,username&access_token=${fbAccessToken}`
+        )
+        const bizIgData = bizIgRes.ok ? await bizIgRes.json() : { data: [] }
+        console.log(`Business ${biz.name} IG accounts:`, JSON.stringify(bizIgData))
+
+        if (bizIgData.data?.length > 0) {
+          const igAccount = bizIgData.data[0]
+          // Page 없이 직접 IG 계정으로 진행
+          pageWithIg = { instagram_business_account: { id: igAccount.id } }
+          break
+        }
+      }
+    }
+
+    if (!pageWithIg?.instagram_business_account?.id) {
+      console.error("No Instagram Business Account found via any path")
       return NextResponse.redirect(`${redirectUrl}?error=instagram_no_business`)
     }
 
     const igAccountId = pageWithIg.instagram_business_account.id
+    console.log("Found IG Account ID:", igAccountId)
 
     // 3. Instagram 계정 정보 조회
     const igUserRes = await fetch(
