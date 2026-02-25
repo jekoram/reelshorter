@@ -185,6 +185,11 @@ export async function uploadToInstagramReels(userId: string, options: ReelsUploa
       }
     }
 
+    // 타임아웃 체크
+    if (Date.now() - startTime >= TIMEOUT) {
+      throw new Error("Instagram 영상 처리 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.")
+    }
+
     // Step 4: 게시
     const publishRes = await fetch(`${GRAPH_URL}/${igUserId}/media_publish`, {
       method: "POST",
