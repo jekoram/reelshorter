@@ -4,7 +4,7 @@
 # 역할: 작성 "후" 위반 사항 검출 (컨벤션 리마인드는 pre-check 담당)
 
 INPUT=$(cat)
-FILE_PATH=$(echo "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin).get('input',{}); print(d.get('file_path','') or d.get('path',''))" 2>/dev/null)
+FILE_PATH=$(echo "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin).get('tool_input',{}); print(d.get('file_path','') or d.get('path',''))" 2>/dev/null)
 
 # docs/, .claude/, config 파일 등은 검사 제외
 case "$FILE_PATH" in
