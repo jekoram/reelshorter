@@ -38,11 +38,26 @@ export async function GET(request: NextRequest) {
     const tokenData = await tokenRes.json()
     const fbAccessToken = tokenData.access_token
 
+    // 디버그: 토큰 정보 확인
+    console.log("Token data keys:", Object.keys(tokenData))
+
+    // 디버그: 토큰 소유자 확인
+    const meRes = await fetch(`${GRAPH_URL}/me?fields=id,name&access_token=${fbAccessToken}`)
+    const meData = await meRes.json()
+    console.log("Token owner (/me):", JSON.stringify(meData))
+
+    // 디버그: 토큰 권한 확인
+    const permRes = await fetch(`${GRAPH_URL}/me/permissions?access_token=${fbAccessToken}`)
+    const permData = await permRes.json()
+    console.log("Token permissions:", JSON.stringify(permData))
+
     // 2. Facebook Pages 조회
     const pagesRes = await fetch(
       `${GRAPH_URL}/me/accounts?fields=id,name,instagram_business_account&access_token=${fbAccessToken}`
     )
     if (!pagesRes.ok) {
+      const pagesErr = await pagesRes.text()
+      console.error("Facebook Pages API error:", pagesErr)
       throw new Error("Facebook 페이지 조회 실패")
     }
     const pagesData = await pagesRes.json()
