@@ -81,8 +81,7 @@ export function UploadForm({ connections }: UploadFormProps) {
 
   const hasSelectedPlatform = youtube.enabled || instagram.enabled
   const hasRequiredFields =
-    (!youtube.enabled || youtube.title.trim()) &&
-    (!instagram.enabled || instagram.description.trim())
+    (!youtube.enabled || youtube.title.trim())
 
   const canSubmit = file && hasSelectedPlatform && hasRequiredFields && !isUploading
 
@@ -99,10 +98,6 @@ export function UploadForm({ connections }: UploadFormProps) {
     // 활성화된 플랫폼의 필수 필드 검증
     if (youtube.enabled && !youtube.title.trim()) {
       setError("YouTube 제목을 입력해주세요.")
-      return
-    }
-    if (instagram.enabled && !instagram.description.trim()) {
-      setError("Instagram 캡션을 입력해주세요.")
       return
     }
 

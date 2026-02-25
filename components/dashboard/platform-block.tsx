@@ -111,7 +111,7 @@ export function PlatformBlock({
       <div className="space-y-1.5">
         <label className="block text-sm font-medium text-gray-700">
           {platform === "instagram" ? "캡션" : "설명"}{" "}
-          {platform === "youtube" && <span className="text-gray-400">(선택)</span>}
+          <span className="text-gray-400">(선택)</span>
         </label>
         <textarea
           value={description}

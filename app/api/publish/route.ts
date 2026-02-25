@@ -49,12 +49,6 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         )
       }
-      if (entry.platform === "instagram" && (!entry.description || entry.description.trim().length === 0)) {
-        return NextResponse.json(
-          { error: "Instagram 캡션을 입력해주세요." },
-          { status: 400 }
-        )
-      }
     }
 
     // 파일 크기 검증 (서버 측)
