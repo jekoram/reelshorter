@@ -4,7 +4,21 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { uploadToYouTube } from "@/lib/youtube"
 import { uploadToInstagramReels } from "@/lib/instagram"
-import { FILE_CONSTRAINTS } from "@/lib/validators"
+import { del } from "@vercel/blob"
+import { Readable } from "stream"
+
+function isOwnBlobUrl(value: string): boolean {
+  try {
+    const url = new URL(value)
+    return (
+      url.protocol === "https:" &&
+      url.hostname.endsWith(".public.blob.vercel-storage.com") &&
+      url.pathname.startsWith("/uploads/")
+    )
+  } catch {
+    return false
+  }
+}
 
 export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions)
@@ -12,28 +26,24 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
+  let blobUrl: string | null = null
+
   try {
-    const formData = await request.formData()
-    const file = formData.get("file") as File | null
-    const platformsRaw = formData.get("platforms") as string | null
+    const body = (await request.json()) as {
+      blobUrl?: string
+      mimeType?: string
+      platforms?: { platform: string; title: string; description: string }[]
+    }
+    const platformEntries = Array.isArray(body.platforms) ? body.platforms : []
+    const mimeType = body.mimeType || "video/mp4"
 
-    // 입력 검증
-    if (!file) {
+    if (typeof body.blobUrl !== "string" || !isOwnBlobUrl(body.blobUrl)) {
       return NextResponse.json(
-        { error: "업로드할 파일을 선택해주세요." },
+        { error: "업로드된 영상 정보가 올바르지 않습니다. 다시 시도해주세요." },
         { status: 400 }
       )
     }
-
-    let platformEntries: { platform: string; title: string; description: string }[]
-    try {
-      platformEntries = JSON.parse(platformsRaw || "[]")
-    } catch {
-      return NextResponse.json(
-        { error: "플랫폼 데이터 형식이 올바르지 않습니다." },
-        { status: 400 }
-      )
-    }
+    blobUrl = body.blobUrl
 
     if (platformEntries.length === 0) {
       return NextResponse.json(
@@ -51,41 +61,21 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 파일 크기 검증 (서버 측)
-    if (file.size > FILE_CONSTRAINTS.maxSize) {
-      return NextResponse.json(
-        { error: "파일 크기가 너무 큽니다. 최대 499MB까지 업로드할 수 있어요." },
-        { status: 400 }
-      )
-    }
-
-    // 파일 형식 검증 (서버 측)
-    const ext = "." + file.name.split(".").pop()?.toLowerCase()
-    const isValidType = FILE_CONSTRAINTS.allowedTypes.includes(file.type)
-    const isValidExt = FILE_CONSTRAINTS.allowedExtensions.includes(ext)
-
-    if (!isValidType && !isValidExt) {
-      return NextResponse.json(
-        { error: "지원하지 않는 파일 형식입니다. MP4, MOV, WebM 파일만 업로드할 수 있어요." },
-        { status: 400 }
-      )
-    }
-
-    // 파일을 Buffer로 변환
-    const arrayBuffer = await file.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
-
     const results: { platform: string; success: boolean; url?: string; error?: string }[] = []
 
     // 각 플랫폼별 업로드
     for (const entry of platformEntries) {
       if (entry.platform === "youtube") {
         try {
+          const videoRes = await fetch(blobUrl)
+          if (!videoRes.ok || !videoRes.body) {
+            throw new Error("업로드된 영상을 불러오지 못했습니다.")
+          }
           const result = await uploadToYouTube(session.user.id, {
             title: entry.title.trim(),
             description: entry.description.trim(),
-            file: buffer,
-            mimeType: file.type || "video/mp4",
+            stream: Readable.fromWeb(videoRes.body as Parameters<typeof Readable.fromWeb>[0]),
+            mimeType,
           })
 
           // PublishLog 기록 (성공)
@@ -130,9 +120,7 @@ export async function POST(request: NextRequest) {
         try {
           const result = await uploadToInstagramReels(session.user.id, {
             caption: entry.description.trim(),
-            videoBuffer: buffer,
-            mimeType: file.type || "video/mp4",
-            fileName: file.name,
+            videoUrl: blobUrl,
           })
 
           await prisma.publishLog.create({
@@ -195,5 +183,11 @@ export async function POST(request: NextRequest) {
       { error: "게시 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요." },
       { status: 500 }
     )
+  } finally {
+    if (blobUrl) {
+      del(blobUrl).catch(() => {
+        console.error("Failed to delete temp blob:", blobUrl)
+      })
+    }
   }
 }

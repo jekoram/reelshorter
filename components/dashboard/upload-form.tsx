@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react"
 import { useDropzone } from "react-dropzone"
+import { upload } from "@vercel/blob/client"
 import { UploadCloud, X, FileVideo, Loader2, ExternalLink } from "lucide-react"
 import { validateVideoFile } from "@/lib/validators"
 import { formatFileSize } from "@/lib/utils"
@@ -124,24 +125,43 @@ export function UploadForm({ connections }: UploadFormProps) {
         })
       }
 
-      const formData = new FormData()
-      formData.append("file", file)
-      formData.append("platforms", JSON.stringify(platforms))
+      const ext = file.name.split(".").pop()?.toLowerCase()
+      const mimeType =
+        file.type ||
+        (ext === "mov" ? "video/quicktime" : ext === "webm" ? "video/webm" : "video/mp4")
+
+      const blob = await upload(`uploads/${file.name}`, file, {
+        access: "public",
+        handleUploadUrl: "/api/blob/upload",
+        contentType: mimeType,
+        multipart: true,
+      })
 
       const response = await fetch("/api/publish", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ blobUrl: blob.url, mimeType, platforms }),
       })
 
-      const data = await response.json()
+      const text = await response.text()
+      let data: {
+        error?: string
+        message?: string
+        results?: { platform: string; success: boolean; url?: string }[]
+      }
+      try {
+        data = JSON.parse(text)
+      } catch {
+        throw new Error("서버 응답을 처리하지 못했습니다. 잠시 후 다시 시도해주세요.")
+      }
 
       if (!response.ok) {
         throw new Error(data.error || "업로드에 실패했습니다.")
       }
 
-      const urls = data.results
-        ?.filter((r: { success: boolean; url?: string }) => r.success && r.url)
-        .map((r: { platform: string; url: string }) => ({ platform: r.platform, url: r.url })) || []
+      const urls = (data.results || []).flatMap((r) =>
+        r.success && r.url ? [{ platform: r.platform, url: r.url }] : []
+      )
 
       setUploadedUrls(urls)
       setSuccessMessage(data.message || "영상이 성공적으로 업로드되었습니다!")

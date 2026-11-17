@@ -1,5 +1,6 @@
 "use server"
 
+import { Readable } from "stream"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
@@ -86,7 +87,7 @@ export async function publishVideo(formData: FormData): Promise<PublishResult> {
         const result = await uploadToYouTube(session.user.id, {
           title: title.trim(),
           description: description.trim(),
-          file: buffer,
+          stream: Readable.from(buffer),
           mimeType: file.type || "video/mp4",
         })
 

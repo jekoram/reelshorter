@@ -57,7 +57,7 @@ export async function getYouTubeClient(userId: string) {
 export interface UploadOptions {
   title: string
   description: string
-  file: Buffer
+  stream: Readable
   mimeType: string
 }
 
@@ -79,7 +79,7 @@ export async function uploadToYouTube(userId: string, options: UploadOptions) {
     },
     media: {
       mimeType: options.mimeType,
-      body: Readable.from(options.file),
+      body: options.stream,
     },
   })
 
